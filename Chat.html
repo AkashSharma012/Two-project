@@ -1,0 +1,909 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ChatApp - Real-Time Messaging</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #4a6cfa;
+            --secondary-color: #7b68ee;
+            --dark-color: #2c3e50;
+            --light-color: #f5f7fb;
+            --success-color: #2ecc71;
+            --error-color: #e74c3c;
+            --warning-color: #f39c12;
+            --text-color: #333;
+            --text-light: #777;
+            --shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            --border-radius: 12px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: var(--text-color);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1200px;
+            height: 90vh;
+            background-color: white;
+            border-radius: var(--border-radius);
+            overflow: hidden;
+            display: flex;
+            box-shadow: var(--shadow);
+        }
+
+        /* Sidebar Styles */
+        .sidebar {
+            width: 300px;
+            background-color: var(--dark-color);
+            color: white;
+            display: flex;
+            flex-direction: column;
+            padding: 20px 0;
+        }
+
+        .app-header {
+            padding: 0 20px 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .app-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.5rem;
+            margin-bottom: 5px;
+        }
+
+        .app-subtitle {
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .user-profile {
+            display: flex;
+            align-items: center;
+            padding: 20px;
+            gap: 15px;
+        }
+
+        .avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: linear-gradient(45deg, var(--secondary-color), var(--primary-color));
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: white;
+        }
+
+        .user-info {
+            flex: 1;
+        }
+
+        .username {
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .user-status {
+            font-size: 0.8rem;
+            color: var(--success-color);
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: var(--success-color);
+        }
+
+        .sidebar-menu {
+            padding: 20px 0;
+            flex: 1;
+        }
+
+        .menu-item {
+            padding: 12px 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .menu-item:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .menu-item.active {
+            background-color: var(--primary-color);
+        }
+
+        .channels {
+            padding: 0 20px;
+        }
+
+        .channels-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .channels-title {
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .add-channel {
+            color: rgba(255, 255, 255, 0.7);
+            cursor: pointer;
+        }
+
+        .channel-list {
+            list-style: none;
+        }
+
+        .channel {
+            padding: 8px 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+        }
+
+        .channel:hover {
+            color: var(--secondary-color);
+        }
+
+        .channel.active {
+            color: var(--secondary-color);
+            font-weight: 600;
+        }
+
+        .channel-prefix {
+            font-size: 0.8rem;
+        }
+
+        /* Chat Area Styles */
+        .chat-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background-color: var(--light-color);
+        }
+
+        .chat-header {
+            padding: 15px 20px;
+            background-color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
+        .current-channel {
+            font-weight: 600;
+        }
+
+        .channel-description {
+            font-size: 0.9rem;
+            color: var(--text-light);
+        }
+
+        .chat-actions {
+            display: flex;
+            gap: 15px;
+        }
+
+        .chat-action {
+            color: var(--text-light);
+            cursor: pointer;
+        }
+
+        .chat-action:hover {
+            color: var(--primary-color);
+        }
+
+        .messages-container {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .message {
+            display: flex;
+            gap: 15px;
+            max-width: 80%;
+        }
+
+        .message.own {
+            align-self: flex-end;
+        }
+
+        .message.own .message-content {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .message-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(45deg, #ff7e5f, #feb47b);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: bold;
+            color: white;
+            font-size: 0.9rem;
+            flex-shrink: 0;
+        }
+
+        .message-content {
+            background-color: white;
+            padding: 12px 15px;
+            border-radius: 18px;
+            box-shadow: var(--shadow);
+        }
+
+        .message.own .message-content {
+            border-bottom-right-radius: 4px;
+        }
+
+        .message:not(.own) .message-content {
+            border-bottom-left-radius: 4px;
+        }
+
+        .message-sender {
+            font-weight: 600;
+            margin-bottom: 5px;
+            font-size: 0.9rem;
+        }
+
+        .message-text {
+            line-height: 1.4;
+        }
+
+        .message-time {
+            font-size: 0.7rem;
+            color: var(--text-light);
+            text-align: right;
+            margin-top: 5px;
+        }
+
+        .message.own .message-time {
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .input-area {
+            padding: 20px;
+            background-color: white;
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .message-input {
+            flex: 1;
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            border-radius: 24px;
+            outline: none;
+            font-size: 1rem;
+        }
+
+        .message-input:focus {
+            border-color: var(--primary-color);
+        }
+
+        .send-button {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            border: none;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            box-shadow: var(--shadow);
+            transition: transform 0.2s;
+        }
+
+        .send-button:hover {
+            transform: scale(1.05);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+                height: auto;
+            }
+            
+            .sidebar {
+                width: 100%;
+                height: auto;
+            }
+            
+            .chat-area {
+                height: 500px;
+            }
+            
+            .message {
+                max-width: 90%;
+            }
+        }
+
+        /* Login Form */
+        .login-container {
+            width: 100%;
+            max-width: 400px;
+            background-color: white;
+            border-radius: var(--border-radius);
+            padding: 30px;
+            box-shadow: var(--shadow);
+        }
+
+        .login-title {
+            text-align: center;
+            margin-bottom: 20px;
+            color: var(--dark-color);
+        }
+
+        .login-form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .form-label {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--text-light);
+        }
+
+        .form-input {
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            outline: none;
+            font-size: 1rem;
+        }
+
+        .form-input:focus {
+            border-color: var(--primary-color);
+        }
+
+        .login-button {
+            padding: 12px;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 10px;
+            box-shadow: var(--shadow);
+        }
+
+        .login-options {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 15px;
+            font-size: 0.9rem;
+        }
+
+        .remember-me {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .forgot-password {
+            color: var(--primary-color);
+            text-decoration: none;
+        }
+
+        .signup-link {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 0.9rem;
+            color: var(--text-light);
+        }
+
+        .signup-link a {
+            color: var(--primary-color);
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        /* Notification */
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background-color: white;
+            padding: 15px 20px;
+            border-radius: 8px;
+            box-shadow: var(--shadow);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transform: translateX(150%);
+            transition: transform 0.3s ease;
+            z-index: 1000;
+        }
+
+        .notification.show {
+            transform: translateX(0);
+        }
+
+        .notification-success {
+            border-left: 4px solid var(--success-color);
+        }
+
+        .notification-error {
+            border-left: 4px solid var(--error-color);
+        }
+
+        .notification-icon {
+            font-size: 1.2rem;
+        }
+
+        .notification-success .notification-icon {
+            color: var(--success-color);
+        }
+
+        .notification-error .notification-icon {
+            color: var(--error-color);
+        }
+
+        .notification-content {
+            flex: 1;
+        }
+
+        .notification-title {
+            font-weight: 600;
+            margin-bottom: 3px;
+        }
+
+        .notification-message {
+            font-size: 0.9rem;
+            color: var(--text-light);
+        }
+    </style>
+</head>
+<body>
+    <!-- Notification -->
+    <div class="notification notification-success" id="notification">
+        <div class="notification-icon">
+            <i class="fas fa-check-circle"></i>
+        </div>
+        <div class="notification-content">
+            <div class="notification-title">Success</div>
+            <div class="notification-message">Message sent successfully</div>
+        </div>
+    </div>
+
+    <!-- Chat Application -->
+    <div class="container" id="chat-app">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="app-header">
+                <div class="app-title">
+                    <i class="fas fa-comments"></i>
+                    <span>ChatApp</span>
+                </div>
+                <div class="app-subtitle">Real-time messaging</div>
+            </div>
+
+            <div class="user-profile">
+                <div class="avatar">AS</div>
+                <div class="user-info">
+                    <div class="username">Akash Sharma</div>
+                    <div class="user-status">
+                        <span class="status-dot"></span>
+                        <span>Online</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="sidebar-menu">
+                <div class="menu-item active">
+                    <i class="fas fa-comment-dots"></i>
+                    <span>Messages</span>
+                </div>
+                <div class="menu-item">
+                    <i class="fas fa-users"></i>
+                    <span>Contacts</span>
+                </div>
+                <div class="menu-item">
+                    <i class="fas fa-bell"></i>
+                    <span>Notifications</span>
+                </div>
+                <div class="menu-item">
+                    <i class="fas fa-cog"></i>
+                    <span>Settings</span>
+                </div>
+            </div>
+
+            <div class="channels">
+                <div class="channels-header">
+                    <div class="channels-title">Channels</div>
+                    <div class="add-channel">
+                        <i class="fas fa-plus"></i>
+                    </div>
+                </div>
+                <ul class="channel-list">
+                    <li class="channel active">
+                        <span class="channel-prefix">#</span>
+                        <span class="channel-name">general</span>
+                    </li>
+                    <li class="channel">
+                        <span class="channel-prefix">#</span>
+                        <span class="channel-name">random</span>
+                    </li>
+                    <li class="channel">
+                        <span class="channel-prefix">#</span>
+                        <span class="channel-name">support</span>
+                    </li>
+                    <li class="channel">
+                        <span class="channel-prefix">#</span>
+                        <span class="channel-name">developers</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Chat Area -->
+        <div class="chat-area">
+            <div class="chat-header">
+                <div class="channel-info">
+                    <div class="current-channel">#general</div>
+                    <div class="channel-description">General discussions</div>
+                </div>
+                <div class="chat-actions">
+                    <div class="chat-action">
+                        <i class="fas fa-search"></i>
+                    </div>
+                    <div class="chat-action">
+                        <i class="fas fa-paperclip"></i>
+                    </div>
+                    <div class="chat-action">
+                        <i class="fas fa-ellipsis-v"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="messages-container" id="messages-container">
+                <div class="message">
+                    <div class="message-avatar">R</div>
+                    <div class="message-content">
+                        <div class="message-sender">Rohit</div>
+                        <div class="message-text">Hey everyone! Welcome to the general channel 👋</div>
+                        <div class="message-time">10:15 AM</div>
+                    </div>
+                </div>
+
+                <div class="message">
+                    <div class="message-avatar">RY</div>
+                    <div class="message-content">
+                        <div class="message-sender">Rakesh</div>
+                        <div class="message-text">Thanks Emma! Glad to be here. How is everyone doing today?</div>
+                        <div class="message-time">10:18 AM</div>
+                    </div>
+                </div>
+
+                <div class="message own">
+                    <div class="message-content">
+                        <div class="message-text">Doing great Mike! Just finished the new chat interface design.</div>
+                        <div class="message-time">10:20 AM</div>
+                    </div>
+                </div>
+
+                <div class="message">
+                    <div class="message-avatar">R</div>
+                    <div class="message-content">
+                        <div class="message-sender">Rohit</div>
+                        <div class="message-text">That's awesome! Can't wait to see it in action.</div>
+                        <div class="message-time">10:22 AM</div>
+                    </div>
+                </div>
+
+                <div class="message">
+                    <div class="message-avatar">Ra</div>
+                    <div class="message-content">
+                        <div class="message-sender">Rajiv</div>
+                        <div class="message-text">Has anyone started working on the backend integration yet?</div>
+                        <div class="message-time">10:25 AM</div>
+                    </div>
+                </div>
+
+                <div class="message own">
+                    <div class="message-content">
+                        <div class="message-text">I'm about to start on that. Planning to use Socket.io for the real-time functionality.</div>
+                        <div class="message-time">10:27 AM</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="input-area">
+                <input type="text" class="message-input" placeholder="Type a message...">
+                <button class="send-button">
+                    <i class="fas fa-paper-plane"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // DOM Elements
+            const messagesContainer = document.getElementById('messages-container');
+            const messageInput = document.querySelector('.message-input');
+            const sendButton = document.querySelector('.send-button');
+            const channels = document.querySelectorAll('.channel');
+            const notification = document.getElementById('notification');
+            
+            // Sample user data
+            const users = [
+                { name: 'Rohit', initials: 'R', color: '#667eea' },
+                { name: 'Rakesh', initials: 'RY', color: '#f093fb' },
+                { name: 'Rajiv', initials: 'Ra', color: '#4ecdc4' },
+                { name: 'You', initials: 'AS', color: '#43e97b' }
+            ];
+            
+            // Sample messages for each channel
+            const channelMessages = {
+                general: [
+                    { sender: 'Rohit ', text: 'Hey everyone! Welcome to the general channel 👋', time: '10:15 AM' },
+                    { sender: 'Rakesh', text: 'Thanks Rohit! Glad to be here. How is everyone doing today?', time: '10:18 AM' },
+                    { sender: 'You', text: 'Doing great Rakesh! Just finished the new chat interface design.', time: '10:20 AM' },
+                    { sender: 'Rohit', text: 'That\'s awesome! Can\'t wait to see it in action.', time: '10:22 AM' },
+                    { sender: 'Rajiv', text: 'Has anyone started working on the backend integration yet?', time: '10:25 AM' },
+                    { sender: 'You', text: 'I\'m about to start on that. Planning to use Socket.io for the real-time functionality.', time: '10:27 AM' }
+                ],
+                random: [
+                    { sender: 'Rakesh', text: 'Anyone watching the game tonight?', time: '09:15 AM' },
+                    { sender: 'Rohit', text: 'Which game?', time: '09:17 AM' },
+                    { sender: 'Rajiv', text: 'The championship finals! It\'s going to be epic!', time: '09:20 AM' }
+                ],
+                support: [
+                    { sender: 'Rohit', text: 'We have a new update rolling out today.', time: '08:30 AM' },
+                    { sender: 'Rakesh', text: 'Please report any issues in this channel.', time: '08:32 AM' }
+                ],
+                developers: [
+                    { sender: 'Rajiv', text: 'I pushed the new API documentation to the dev branch.', time: '09:45 AM' },
+                    { sender: 'Rohit', text: 'Thanks Rajiv! I\'ll review it this afternoon.', time: '09:48 AM' }
+                ]
+            };
+            
+            // Set up event listeners
+            function setupEventListeners() {
+                // Send message on button click
+                sendButton.addEventListener('click', sendMessage);
+                
+                // Send message on Enter key
+                messageInput.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        sendMessage();
+                    }
+                });
+                
+                // Change channel on click
+                channels.forEach(channel => {
+                    channel.addEventListener('click', function() {
+                        // Remove active class from all channels
+                        channels.forEach(c => c.classList.remove('active'));
+                        
+                        // Add active class to clicked channel
+                        this.classList.add('active');
+                        
+                        // Update chat header
+                        const channelName = this.querySelector('.channel-name').textContent;
+                        document.querySelector('.current-channel').textContent = '#' + channelName;
+                        document.querySelector('.channel-description').textContent = getChannelDescription(channelName);
+                        
+                        // Load messages for this channel
+                        loadChannelMessages(channelName);
+                    });
+                });
+            }
+            
+            // Send a new message
+            function sendMessage() {
+                const messageText = messageInput.value.trim();
+                
+                if (messageText) {
+                    // Create new message element
+                    const messageElement = createMessageElement('You', messageText, getCurrentTime());
+                    
+                    // Add to messages container
+                    messagesContainer.appendChild(messageElement);
+                    
+                    // Scroll to bottom
+                    scrollToBottom();
+                    
+                    // Clear input
+                    messageInput.value = '';
+                    
+                    // Show notification
+                    showNotification('Message sent successfully', 'success');
+                    
+                    // Simulate a reply after a short delay
+                    simulateReply();
+                }
+            }
+            
+            // Create a message element
+            function createMessageElement(sender, text, time) {
+                const messageDiv = document.createElement('div');
+                messageDiv.classList.add('message');
+                
+                if (sender === 'You') {
+                    messageDiv.classList.add('own');
+                    messageDiv.innerHTML = `
+                        <div class="message-content">
+                            <div class="message-text">${text}</div>
+                            <div class="message-time">${time}</div>
+                        </div>
+                    `;
+                } else {
+                    const user = users.find(u => u.name === sender);
+                    messageDiv.innerHTML = `
+                        <div class="message-avatar" style="background: ${user.color}">${user.initials}</div>
+                        <div class="message-content">
+                            <div class="message-sender">${sender}</div>
+                            <div class="message-text">${text}</div>
+                            <div class="message-time">${time}</div>
+                        </div>
+                    `;
+                }
+                
+                return messageDiv;
+            }
+            
+            // Load messages for a channel
+            function loadChannelMessages(channelName) {
+                // Clear current messages
+                messagesContainer.innerHTML = '';
+                
+                // Get messages for this channel
+                const messages = channelMessages[channelName] || [];
+                
+                // Add messages to container
+                messages.forEach(msg => {
+                    const messageElement = createMessageElement(msg.sender, msg.text, msg.time);
+                    messagesContainer.appendChild(messageElement);
+                });
+                
+                // Scroll to bottom
+                scrollToBottom();
+            }
+            
+            // Scroll to bottom of messages container
+            function scrollToBottom() {
+                messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            }
+            
+            // Get current time in HH:MM AM/PM format
+            function getCurrentTime() {
+                const now = new Date();
+                let hours = now.getHours();
+                let minutes = now.getMinutes();
+                const ampm = hours >= 12 ? 'PM' : 'AM';
+                
+                hours = hours % 12;
+                hours = hours ? hours : 12; // the hour '0' should be '12'
+                minutes = minutes < 10 ? '0' + minutes : minutes;
+                
+                return `${hours}:${minutes} ${ampm}`;
+            }
+            
+            // Get channel description
+            function getChannelDescription(channelName) {
+                const descriptions = {
+                    general: 'General discussions',
+                    random: 'Random talk and fun',
+                    support: 'Customer support',
+                    developers: 'Development discussions'
+                };
+                
+                return descriptions[channelName] || 'Channel description';
+            }
+            
+            // Show notification
+            function showNotification(message, type) {
+                const title = type === 'success' ? 'Success' : 'Error';
+                
+                notification.querySelector('.notification-title').textContent = title;
+                notification.querySelector('.notification-message').textContent = message;
+                
+                notification.className = 'notification';
+                notification.classList.add(`notification-${type}`);
+                notification.classList.add('show');
+                
+                // Hide after 3 seconds
+                setTimeout(() => {
+                    notification.classList.remove('show');
+                }, 3000);
+            }
+            
+            // Simulate a reply from another user
+            function simulateReply() {
+                setTimeout(() => {
+                    // Select a random user who isn't the current user
+                    const otherUsers = users.filter(user => user.name !== 'You');
+                    const randomUser = otherUsers[Math.floor(Math.random() * otherUsers.length)];
+                    
+                    // Sample replies
+                    const replies = [
+                        "That's interesting!",
+                        "I agree with you.",
+                        "Can you tell me more about that?",
+                        "I'll look into it and get back to you.",
+                        "Thanks for sharing!",
+                        "That makes sense."
+                    ];
+                    
+                    const randomReply = replies[Math.floor(Math.random() * replies.length)];
+                    
+                    // Create and add message element
+                    const messageElement = createMessageElement(randomUser.name, randomReply, getCurrentTime());
+                    messagesContainer.appendChild(messageElement);
+                    
+                    // Scroll to bottom
+                    scrollToBottom();
+                }, 2000);
+            }
+            
+            // Initialize the app
+            function init() {
+                setupEventListeners();
+                scrollToBottom();
+            }
+            
+            // Initialize the application
+            init();
+        });
+    </script>
+</body>
+</html>
